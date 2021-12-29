@@ -1,9 +1,11 @@
-Update phpMyEdit.class.php for PHP version 8
+Update phpMyEdit.class.php for PHP version 8 (compatible with PHP v7)
 
 Based upon Patrick Goupell's Update for PHP version 7 (October 2018)
   (http://www.yooperlinux.com/sites/default/files/downloads/phpMyEdit-5.8.0.zip)
   with additional edits and fixes derived from Kimball Rexford and other
-  contributors at https://kimballrexford.com/phpmyedit-for-php7-and-mysqli/ 
+  contributors at https://kimballrexford.com/phpmyedit-for-php7-and-mysqli/
+
+Tested under PHP v8.0.13 (Windows, Android/Termux), v7.3.3 (Windows), v7.4.1 (Linux/Centos7) 
 
 Apart from fixes to the code (some enumerated by posters including myself at kimballrexford.com), the most consequential changes were to MySQLI configuration, ensuring that UTF-8 uses the new "utf8mb4" default in all tables of the "information_schema" database, in client databases and calling programs, and in my.ini|my.cnf.  I largely followed extensive guidance at https://www.toptal.com/php/a-utf-8-primer-for-php-and-mysql
 
