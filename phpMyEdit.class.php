@@ -23,7 +23,7 @@
 
 /*  This is a generic table editing program. The table and fields to be
 	edited are defined in the calling program.
-	
+
 // ***********************
 //
 //  updated October 2018, Patrick Goupell, patrick@yoopermail.us
@@ -32,11 +32,13 @@
 //
 // ***********************
 //
-//  updated December 2021, Robert Holmgren
-//  updated for PHP version 8
+//  updated January 2022, Robert Holmgren
+//  updated for PHP version 8 (compatible with v7)
+//  many fixes (but YMMV)
 //
 // ***********************
-	
+
+
 
 	This program works in three passes.
 	* Pass 1 (the last part of the program) displays the selected SQL
@@ -49,10 +51,11 @@
 	  original table view (Pass 1).
 */
 
-function fhtmlspecialchars($myString){ // In PHP 5.4 the default encoding used by htmlspecialchars() was changed.
+function fhtmlspecialchars($myString){ // In PHP 5.4 the default encoding used by htmlspecialchars() was changed
 	return htmlspecialchars($myString,ENT_SUBSTITUTE,'UTF-8',true);
 }
-class phpMyEdit_timer /* {{{ */
+
+class phpMyEdit_timer
 {
 	var $startTime;
 	var $started;
@@ -86,9 +89,9 @@ class phpMyEdit_timer /* {{{ */
 			return 'phpMyEdit_timer ERROR: timer not started';
 		}
 	}
-} /* }}} */
+}
 
-if (! function_exists('array_search')) { /* {{{ */
+if (! function_exists('array_search')) {
 	function array_search($needle, $haystack)
 	{
 		foreach ($haystack as $key => $value) {
@@ -97,14 +100,14 @@ if (! function_exists('array_search')) { /* {{{ */
 		}
 		return false;
 	}
-} /* }}} */
+}
 
-if (! function_exists('realpath')) { /* {{{ */
+if (! function_exists('realpath')) {
 	function realpath($path)
 	{
 		return $path;
 	}
-} /* }}} */
+}
 
 class phpMyEdit
 {
@@ -196,83 +199,85 @@ class phpMyEdit
 			'D' => array('save','cancel'),
 			'V' => array('change','cancel')
 			);
-	// }}}
-
 	/*
-	 * column specific functions
-	 */
-
-	function col_has_sql($k)    { return isset($this->fdd[$k]['sql']); }
-	function col_has_sqlw($k)   { return isset($this->fdd[$k]['sqlw']) && !$this->virtual($k); }
-	function col_has_values($k) { return isset($this->fdd[$k]['values']) || isset($this->fdd[$k]['values2']); }
-	function col_has_php($k)    { return isset($this->fdd[$k]['php']); }
-	function col_has_URL($k)    { return isset($this->fdd[$k]['URL'])
-		|| isset($this->fdd[$k]['URLprefix']) || isset($this->fdd[$k]['URLpostfix']); }
-	function col_has_multiple($k)
-	{ return $this->col_has_multiple_select($k) || $this->col_has_checkboxes($k); }
-	function col_has_multiple_select($k)
-	{ return $this->fdd[$k]['select'] == 'M' && ! $this->fdd[$k]['values']['table']; }
-	function col_has_checkboxes($k)
-	{ return $this->fdd[$k]['select'] == 'C' && ! $this->fdd[$k]['values']['table']; }
-	function col_has_radio_buttons($k)
-	{ return $this->fdd[$k]['select'] == 'O' && ! $this->fdd[$k]['values']['table']; }
-	function col_has_datemask($k)
-	{ return isset($this->fdd[$k]['datemask']) || isset($this->fdd[$k]['strftimemask']); }
-
-	/*
-	 * functions for indicating whether navigation style is enabled
+	* column specific functions
 	*/
-	function nav_buttons()       { return stristr($this->navigation, 'B'); }
-	function nav_text_links()    { return stristr($this->navigation, 'T'); }
-	function nav_graphic_links() { return stristr($this->navigation, 'G'); }
-	function nav_up()            { return (stristr($this->navigation, 'U') && !($this->buttons[$this->page_type]['up'] === false)); }
-	function nav_down()          { return (stristr($this->navigation, 'D') && !($this->buttons[$this->page_type]['down'] === false)); }
+
+	function col_has_sql($k)    { return isset($this->fdd[$k]['sql']);}
+	function col_has_sqlw($k)   { return isset($this->fdd[$k]['sqlw']) && !$this->virtual($k);}
+	function col_has_values($k) { return isset($this->fdd[$k]['values']) || isset($this->fdd[$k]['values2']);}
+	function col_has_php($k)    { return isset($this->fdd[$k]['php']);}
+	function col_has_URL($k)    { return isset($this->fdd[$k]['URL'])
+		|| isset($this->fdd[$k]['URLprefix']) || isset($this->fdd[$k]['URLpostfix']);}
+	function col_has_multiple($k)
+	{ return $this->col_has_multiple_select($k) || $this->col_has_checkboxes($k);}
+	function col_has_multiple_select($k)
+	{ return $this->fdd[$k]['select'] == 'M' && ! $this->fdd[$k]['values']['table'];}
+	function col_has_checkboxes($k)
+	{ return $this->fdd[$k]['select'] == 'C' && ! $this->fdd[$k]['values']['table'];}
+	function col_has_radio_buttons($k)
+	{ return $this->fdd[$k]['select'] == 'O' && ! $this->fdd[$k]['values']['table'];}
+	function col_has_datemask($k)
+	{ return isset($this->fdd[$k]['datemask']) || isset($this->fdd[$k]['strftimemask']);}
+
+	/*
+	* functions for indicating whether navigation style is enabled
+	*/
+	function nav_buttons()       { return stristr($this->navigation, 'B');}
+	function nav_text_links()    { return stristr($this->navigation, 'T');}
+	function nav_graphic_links() { return stristr($this->navigation, 'G');}
+//	function nav_up()            { return (stristr($this->navigation, 'U') && !($this->buttons[$this->page_type]['up'] === false));}
+	function nav_up()            { return stristr($this->navigation, 'U');}
+//	function nav_down()          { return (stristr($this->navigation, 'D') && !($this->buttons[$this->page_type]['down'] === false));}
+	function nav_down()          { return stristr($this->navigation, 'D');}
 
 	/*
 	 * functions for indicating whether operations are enabled
 	 */
-	function add_enabled()    { return stristr($this->options, 'A'); }
-	function change_enabled() { return stristr($this->options, 'C'); }
-	function delete_enabled() { return stristr($this->options, 'D'); }
-	function filter_enabled() { return stristr($this->options, 'F'); }
-	function view_enabled()   { return stristr($this->options, 'V'); }
-	function copy_enabled()   { return stristr($this->options, 'P') && $this->add_enabled(); }
-	function tabs_enabled()   { return $this->display['tabs'] && count($this->tabs) > 0; }
-	function hidden($k)       { return stristr($this->fdd[$k]['input'],'H'); }
-//	function hidden($k)     { return false; }
-	function password($k)     { return stristr($this->fdd[$k]['input'],'W'); }
-//	function password($k)     { return false; }
-	function readonly($k)     { return stristr($this->fdd[$k]['input'],'R') || $this->virtual($k);     }
-	function virtual($k)      { return stristr($this->fdd[$k]['input'],'V') && $this->col_has_sql($k); }
+	function add_enabled()    { return stristr($this->options, 'A');}
+	function change_enabled() { return stristr($this->options, 'C');}
+	function delete_enabled() { return stristr($this->options, 'D');}
+	function filter_enabled() { return stristr($this->options, 'F');}
+	function view_enabled()   { return stristr($this->options, 'V');}
+	function copy_enabled()   { return stristr($this->options, 'P') && $this->add_enabled();}
+	function tabs_enabled()   { return $this->display['tabs'] && count($this->tabs) > 0;}
+//	function hidden($k)       { return stristr($this->fdd[$k]['input'],'H'); }
+	function hidden($k)       { if(isset($this->fdd[$k]['input'])){return stristr($this->fdd[$k]['input'],'H');} else {return false;}}
+//	function password($k)     { return stristr($this->fdd[$k]['input'],'W'); }
+	function password($k)     { if(isset($this->fdd[$k]['input'])){return stristr($this->fdd[$k]['input'],'W');} else {return false;}}
+//	function readonly($k)     { return stristr($this->fdd[$k]['input'],'R') || $this->virtual($k);}
+	function readonly($k)     { if(isset($this->fdd[$k]['input'])){return stristr($this->fdd[$k]['input'],'R');} else {return $this->virtual($k);}}
+//	function virtual($k)      { return stristr($this->fdd[$k]['input'],'V') && $this->col_has_sql($k);}
+	function virtual($k)      { if(isset($this->fdd[$k]['input'])){return stristr($this->fdd[$k]['input'],'V') && $this->col_has_sql($k);} else {return false;}}
 
-	function add_operation()    { return $this->operation == $this->labels['Add']    && $this->add_enabled();    }
-	function change_operation() { return $this->operation == $this->labels['Change'] && $this->change_enabled(); }
-	function copy_operation()   { return $this->operation == $this->labels['Copy']   && $this->copy_enabled();   }
-	function delete_operation() { return $this->operation == $this->labels['Delete'] && $this->delete_enabled(); }
-	function view_operation()   { return $this->operation == $this->labels['View']   && $this->view_enabled();   }
-	function filter_operation() { return $this->fl && $this->filter_enabled() && $this->list_operation(); }
+	function add_operation()    { return $this->operation == $this->labels['Add']    && $this->add_enabled();}
+	function change_operation() { return $this->operation == $this->labels['Change'] && $this->change_enabled();}
+	function copy_operation()   { return $this->operation == $this->labels['Copy']   && $this->copy_enabled();}
+	function delete_operation() { return $this->operation == $this->labels['Delete'] && $this->delete_enabled();}
+	function view_operation()   { return $this->operation == $this->labels['View']   && $this->view_enabled();}
+	function filter_operation() { return $this->fl && $this->filter_enabled() && $this->list_operation();}
 	function list_operation()   { /* covers also filtering page */ return ! $this->change_operation()
 										&& ! $this->add_operation()    && ! $this->copy_operation()
-										&& ! $this->delete_operation() && ! $this->view_operation(); }
-	function next_operation()	{ return ($this->navop == $this->labels['Next']) || ($this->navop == '>'); }
-	function prev_operation()	{ return ($this->navop == $this->labels['Prev']) || ($this->navop == '<'); }
-	function first_operation()	{ return ($this->navop == $this->labels['First']) || ($this->navop == '<<'); }
-	function last_operation()	{ return ($this->navop == $this->labels['Last']) || ($this->navop == '>>'); }
-	function clear_operation()	{ return $this->sw == $this->labels['Clear'];  }
+										&& ! $this->delete_operation() && ! $this->view_operation();}
+	function next_operation()	{ return ($this->navop == $this->labels['Next']) || ($this->navop == '>');}
+	function prev_operation()	{ return ($this->navop == $this->labels['Prev']) || ($this->navop == '<');}
+	function first_operation()	{ return ($this->navop == $this->labels['First']) || ($this->navop == '<<');}
+	function last_operation()	{ return ($this->navop == $this->labels['Last']) || ($this->navop == '>>');}
+	function clear_operation()	{ return $this->sw == $this->labels['Clear'];}
 
-	function add_canceled()    { return $this->canceladd    == $this->labels['Cancel']; }
-	function view_canceled()   { return $this->cancelview   == $this->labels['Cancel']; }
-	function change_canceled() { return $this->cancelchange == $this->labels['Cancel']; }
-	function copy_canceled()   { return $this->cancelcopy   == $this->labels['Cancel']; }
-	function delete_canceled() { return $this->canceldelete == $this->labels['Cancel']; }
+	function add_canceled()    { return $this->canceladd    == $this->labels['Cancel'];}
+	function view_canceled()   { return $this->cancelview   == $this->labels['Cancel'];}
+	function change_canceled() { return $this->cancelchange == $this->labels['Cancel'];}
+	function copy_canceled()   { return $this->cancelcopy   == $this->labels['Cancel'];}
+	function delete_canceled() { return $this->canceldelete == $this->labels['Cancel'];}
 
-	function is_values2($k, $val = 'X') /* {{{ */
+	function is_values2($k, $val = 'X')
 	{
 		return $val === null ||
 			(isset($this->fdd[$k]['values2']) && !isset($this->fdd[$k]['values']['table']));
-	} /* }}} */
+	}
 
-	function processed($k) /* {{{ */
+	function processed($k)
 	{
 		if ($this->virtual($k)) {
 			return false;
@@ -288,9 +293,9 @@ class phpMyEdit
 			($this->morechange == $this->labels['Apply'] && stristr($options, 'C')) ||
 			($this->savecopy   == $this->labels['Save']  && stristr($options, 'P')) ||
 			($this->savedelete == $this->labels['Save']  && stristr($options, 'D'));
-	} /* }}} */
+	}
 
-	function displayed($k) /* {{{ */
+	function displayed($k)
 	{
 		if (is_numeric($k)) {
 			$k = $this->fds[$k];
@@ -307,9 +312,9 @@ class phpMyEdit
 			($this->delete_operation() && stristr($options, 'D')) ||
 			($this->filter_operation() && stristr($options, 'F')) ||
 			($this->list_operation()   && stristr($options, 'L'));
-	} /* }}} */
-	
-	function debug_var($name, $val) /* {{{ */
+	}
+
+	function debug_var($name, $val)
 	{
 		if (is_array($val) || is_object($val)) {
 			echo "<pre>$name\n";
@@ -324,70 +329,71 @@ class phpMyEdit
 			echo 'debug_var()::<i>',fhtmlspecialchars($name),'</i>';
 			echo '::<b>',fhtmlspecialchars($val),'</b>::',"<br />\n";
 		}
-	} /* }}} */
+	}
 
 	/*
 	 * sql functions
-	*/
-	function sql_connect() /* {{{ */
+     */
+	function sql_connect()
 	{
 		$this->dbh = @ini_get('allow_persistent')
 			? @mysqli_pconnect($this->hn, $this->un, $this->pw)
 			: @mysqli_connect($this->hn, $this->un, $this->pw);
 
-	} /* }}} */
-		
 
-	function sql_disconnect() /* {{{ */
+	}
+
+
+	function sql_disconnect()
 	{
 		if ($this->close_dbh) {
 			@mysqli_close($this->dbh);
 			$this->dbh = null;
 		}
-	} /* }}} */
+	}
 
-	function sql_fetch(&$res, $type = 'a') /* {{{ */
+	function sql_fetch(&$res, $type = 'a')
 	{
 		if($type == 'n') $type = MYSQLI_NUM;
 		else $type = MYSQLI_ASSOC;
-
 		return @mysqli_fetch_array($res, $type);
-	} /* }}} */
+	}
 
-	function sql_free_result(&$res) /* {{{ */
+	function sql_free_result(&$res)
 	{
 		return @mysqli_free_result($res);
-	} /* }}} */
+	}
 
-	function sql_affected_rows(&$dbh) /* {{{ */
+	function sql_affected_rows(&$dbh)
 	{
 		return @mysqli_affected_rows($dbh);
-	} /* }}} */
+	}
 
-	function sql_field_len(&$res,$field) /* {{{ */
+	function sql_field_len(&$res,$field)
 	{
-		$properties = @mysqli_fetch_field_direct($res, $field);
-		return is_object($properties) ? $properties->length : null;
-	} /* }}} */
+        $properties = @mysqli_fetch_field_direct($res, $field);
+        return is_object($properties) ? $properties->length : null;
 
-	function sql_insert_id() /* {{{ */
+	}
+
+	function sql_insert_id()
 	{
 		return mysqli_insert_id($this->dbh);
-	} /* }}} */
+	}
 
-	function sql_limit($start, $more) /* {{{ */
+	function sql_limit($start, $more)
 	{
 		return ' LIMIT '.$start.', '.$more.' ';
-	} /* }}} */
+	}
 
-	function sql_delimiter() /* {{{ */
+	function sql_delimiter()
 	{
 		$this->sd = '`'; $this->ed='`';
 		return $this->sd;
-	} /* }}} */
+	}
 
 
-	function myquery($qry, $line = 0, $debug = 0) /* {{{ */
+	function myquery($qry, $line = 0, $debug = 0)
 	{
 		global $debug_query;
 		if ($debug_query || $debug) {
@@ -396,9 +402,10 @@ class phpMyEdit
 		}
 		if (isset($this->db)) {
 			//$ret = @mysqli_db_query($this->db, $qry, $this->dbh);
-			mysqli_select_db($this->dbh, $this->db);
-			$ret = mysqli_query($this->dbh, $qry);
-		} else {
+            mysqli_select_db($this->dbh, $this->db);
+            $ret = mysqli_query($this->dbh, $qry);
+
+} else {
 			$ret = @mysqli_query($this->dbh, $qry);
 		}
 		if (! $ret) {
@@ -406,11 +413,11 @@ class phpMyEdit
 			echo fhtmlspecialchars(mysqli_error($this->dbh)),'<hr size="1" />',"\n";
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	/* end of sql functions */ 
+	/* end of sql functions */
 
-	function make_language_labels($language) /* {{{ */
+	function make_language_labels($language)
 	{
 		// just try the first language and variant
 		// this isn't content-negotiation rfc compliant
@@ -444,18 +451,18 @@ class phpMyEdit
 			}
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	function set_values($field_num, $prepend = null, $append = null, $strict = false) /* {{{ */
+	function set_values($field_num, $prepend = null, $append = null, $strict = false)
 	{
 		return (array) $prepend + (array) $this->fdd[$field_num]['values2']
 			+ (isset($this->fdd[$field_num]['values']['table']) || $strict
 					? $this->set_values_from_table($field_num, $strict)
 					: array())
 			+ (array) $append;
-	} /* }}} */
+	}
 
-	function set_values_from_table($field_num, $strict = false) /* {{{ */
+	function set_values_from_table($field_num, $strict = false)
 	{
 		$db    = &$this->fdd[$field_num]['values']['db'];
 		$table = $this->sd.$this->fdd[$field_num]['values']['table'].$this->ed;
@@ -513,9 +520,9 @@ class phpMyEdit
 			$values[$row[0]] = $desc ? $row[1] : $row[0];
 		}
 		return $values;
-	} /* }}} */
+	}
 
-	function fqn($field, $dont_desc = false, $dont_cols = false) /* {{{ */
+	function fqn($field, $dont_desc = false, $dont_cols = false)
 	{
 		is_numeric($field) || $field = array_search($field, $this->fds);
 		// if read SQL expression exists use it
@@ -527,7 +534,7 @@ class phpMyEdit
 				|| $this->change_operation()) {
 				$ret = $this->sd.'PMEtable0'.$this->ed.'.'.$this->sd.$this->fds[$field].$this->ed;
 		} else {
-			if ($this->fdd[$this->fds[$field]]['values']['description'] && ! $dont_desc) {
+			if (isset($this->fdd[$this->fds[$field]]['values']['description']) && ! $dont_desc) {
 				$desc = &$this->fdd[$this->fds[$field]]['values']['description'];
 				if (is_array($desc) && is_array($desc['columns'])) {
 					$ret      = 'CONCAT('; // )
@@ -551,24 +558,26 @@ class phpMyEdit
 					$ret = $this->sd.'PMEjoin'.$field.$this->ed.'.'.$this->sd.$this->fdd[$this->fds[$field]]['values']['description'].$this->ed;
 				}
 			// TODO: remove me
-			} elseif (0 && $this->fdd[$this->fds[$field]]['values']['column'] && ! $dont_cols) {
-				$ret = $this->sd.'PMEjoin'.$field.$this->ed.'.'.$this->fdd[$this->fds[$field]]['values']['column'];
+//			} elseif (0 && $this->fdd[$this->fds[$field]]['values']['column'] && ! $dont_cols) {
+//				$ret = $this->sd.'PMEjoin'.$field.$this->ed.'.'.$this->fdd[$this->fds[$field]]['values']['column'];
 			} else {
 				$ret = $this->sd.'PMEtable0'.$this->ed.'.'.$this->sd.$this->fds[$field].$this->ed;
 			}
 			// TODO: not neccessary, remove me!
-			if (is_array($this->fdd[$this->fds[$field]]['values2'])) {
-			}
+//			if (is_array($this->fdd[$this->fds[$field]]['values2'])) {
+//			}
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	function get_SQL_main_list_query($qparts) /* {{{ */
+	function get_SQL_main_list_query($qparts)
 	{
-		return $this->get_SQL_query($qparts);
-	} /* }}} */
+ 		return $this->get_SQL_query($qparts);
+ 	}
 
-	function get_SQL_query($parts) /* {{{ */
+
+
+	function get_SQL_query($parts)
 	{
 		foreach ($parts as $k => $v) {
 			$parts[$k] = trim($parts[$k]);
@@ -576,28 +585,50 @@ class phpMyEdit
 		switch ($parts['type']) {
 			case 'select':
 				$ret  = 'SELECT ';
-				if ($parts['DISTINCT'])
+				if (isset($parts['DISTINCT'])){
 					$ret .= 'DISTINCT ';
+				}
 				$ret .= $parts['select'];
 				$ret .= ' FROM '.$parts['from'];
-				if ($parts['where'] != '')
-					$ret .= ' WHERE '.$parts['where'];
-				if ($parts['groupby'] != '')
-					$ret .= ' GROUP BY '.$parts['groupby'];
-				if ($parts['having'] != '')
-					$ret .= ' HAVING '.$parts['having'];
-				if ($parts['orderby'] != '')
-					$ret .= ' ORDER BY '.$parts['orderby'];
-				if ($parts['limit'] != '')
-					$ret .= ' '.$parts['limit'];
-				if ($parts['procedure'] != '')
-					$ret .= ' PROCEDURE '.$parts['procedure'];
+				if (isset($parts['where'])){
+					if ($parts['where'] != ''){
+						$ret .= ' WHERE '.$parts['where'];
+					}
+				}
+				if (isset($parts['groupby'])){
+					if ($parts['groupby'] != ''){
+						$ret .= ' GROUP BY '.$parts['groupby'];
+					}
+				}
+				if (isset($parts['having'])){
+					if ($parts['having'] != ''){
+						$ret .= ' HAVING '.$parts['having'];
+					}
+				}
+				if (isset($parts['orderby'])){
+					if ($parts['orderby'] != ''){
+						$ret .= ' ORDER BY '.$parts['orderby'];
+					}
+				}
+				if (isset($parts['limit'])){
+					if ($parts['limit'] != ''){
+						$ret .= ' '.$parts['limit'];
+					}
+				}
+				if (isset($parts['procedure'])){
+					if ($parts['procedure'] != ''){
+						$ret .= ' PROCEDURE '.$parts['procedure'];
+					}
+				}
 				break;
 			case 'update':
 				$ret  = 'UPDATE '.$parts['table'];
 				$ret .= ' SET '.$parts['fields'];
-				if ($parts['where'] != '')
-					$ret .= ' WHERE '.$parts['where'];
+				if (isset($parts['where'])){
+					if ($parts['where'] != ''){
+						$ret .= ' WHERE '.$parts['where'];
+					}
+				}
 				break;
 			case 'insert':
 				$ret  = 'INSERT INTO '.$parts['table'];
@@ -605,17 +636,20 @@ class phpMyEdit
 				break;
 			case 'delete':
 				$ret  = 'DELETE FROM '.$parts['table'];
-				if ($parts['where'] != '')
-					$ret .= ' WHERE '.$parts['where'];
+				if (isset($parts['where'])){
+					if ($parts['where'] != ''){
+						$ret .= ' WHERE '.$parts['where'];
+					}
+				}
 				break;
 			default:
 				die('unknown query type');
 				break;
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	function get_SQL_column_list() /* {{{ */
+	function get_SQL_column_list()
 	{
 		$fields = array();
 		for ($k = 0; $k < $this->num_fds; $k++) {
@@ -632,14 +666,15 @@ class phpMyEdit
 			}
 		}
 		return join(',', $fields);
-	} /* }}} */
+	}
 
-	function get_SQL_join_clause() /* {{{ */
+	function get_SQL_join_clause()
 	{
 		$main_table  = $this->sd.'PMEtable0'.$this->ed;
 		$join_clause = $this->sd.$this->tb.$this->ed." AS $main_table";
 		for ($k = 0, $numfds = sizeof($this->fds); $k < $numfds; $k++) {
 			$main_column = $this->fds[$k];
+if(isset($this->fdd[$main_column]['values'])){
 			if($this->fdd[$main_column]['values']['db']) {
 				$dbp = $this->sd.$this->fdd[$main_column]['values']['db'].$this->ed.'.';
 			} else {
@@ -662,11 +697,12 @@ class phpMyEdit
 					: "$join_table.$join_column = $main_table.".$this->sd.$main_column.$this->ed;
 				$join_clause .= ')';
 			}
+}
 		}
 		return $join_clause;
-	} /* }}} */
+	}
 
-	function get_SQL_where_from_query_opts($qp = null, $text = 0) /* {{{ */
+	function get_SQL_where_from_query_opts($qp = null, $text = 0)
 	{
 		if ($qp == null) {
 			$qp = $this->query_opts;
@@ -704,9 +740,9 @@ class phpMyEdit
 			}
 		}
 		return ''; /* empty string */
-	} /* }}} */
+	}
 
-	function gather_query_opts() /* {{{ */
+	function gather_query_opts()
 	{
 		$this->query_opts = array();
 		$this->prev_qfn   = $this->qfn;
@@ -804,13 +840,13 @@ class phpMyEdit
 			}
 		}
 		$this->query_opts = $qo;
-	} /* }}} */
+	}
 
 	/*
 	 * Create JavaScripts
 	 */
 
-	function form_begin() /* {{{ */
+	function form_begin()
 	{
 		$page_name = fhtmlspecialchars($this->page_name);
 		if ($this->add_operation() || $this->change_operation() || $this->copy_operation()
@@ -841,7 +877,7 @@ class phpMyEdit
 				echo '<style type="text/css" media="screen">',"\n";
 				for ($i = 0; $i < count($this->tabs); $i++) {
 					echo '	#'.$this->dhtml['prefix'].'tab',$i,' { display: ';
-					echo (($i == $this->cur_tab || $this->tabs[$i] == 'PMEtab0' ) ? 'block' : 'none') ,'; }',"\n";
+					echo (($i == $this->cur_tab || $this->tabs[$i] == 'PMEtab0' ) ? 'block' : 'none') ,';}',"\n";
 				}
 				echo '</style>',"\n";
 				// TAB javascripts
@@ -880,9 +916,9 @@ function '.$this->js['prefix'].'show_tab(tab_name)
 			$first_required = true;
 			for ($k = 0; $k < $this->num_fds; $k++) {
 				if ($this->displayed[$k] && ! $this->readonly($k) && ! $this->hidden($k)
-						&& ($this->fdd[$k]['js']['required'] || isset($this->fdd[$k]['js']['regexp']))) {
+&& (isset($this->fdd[$k]['js']['required']) || isset($this->fdd[$k]['js']['regexp']))) {
 					if ($first_required) {
-						$first_required = false;
+				 		$first_required = false;
 						echo '<script type="text/javascript"><!--',"\n";
 						echo '
 function '.$this->js['prefix'].'trim(str)
@@ -991,16 +1027,16 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			echo ' action="',$page_name,'" name="'.$this->cgi['prefix']['sys'].'form">',"\n";
 		}
 		return true;
-	} /* }}} */
+	}
 
-	function form_end() /* {{{ */
+	function form_end()
 	{
 		if ($this->display['form']) {
 			echo '</form>',"\n";
 		}
-	} /* }}} */
+	}
 
-	function display_tab_labels($position) /* {{{ */
+	function display_tab_labels($position)
 	{
 		if (! is_array($this->tabs)) {
 			return false;
@@ -1017,13 +1053,13 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		echo '<td class="',$this->getCSSclass('tab-end', $position),'">&nbsp;</td>',"\n";
 		echo '</tr>',"\n";
 		echo '</table>',"\n";
-	} /* }}} */
+	}
 
 	/*
 	 * Display functions
 	 */
 
-	function display_add_record() /* {{{ */
+	function display_add_record()
 	{
 		for ($tab = 0, $k = 0; $k < $this->num_fds; $k++) {
 			if (isset($this->fdd[$k]['tab']) && $this->tabs_enabled() && $k > 0) {
@@ -1088,7 +1124,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 				// Simple edit box required
 				$len_props = '';
 				$maxlen = intval($this->fdd[$k]['maxlen']);
-				$size   = isset($this->fdd[$k]['size']) ? $this->fdd[$k]['size'] : min($maxlen, 60); 
+				$size   = isset($this->fdd[$k]['size']) ? $this->fdd[$k]['size'] : min($maxlen, 60);
 				if ($size > 0) {
 					$len_props .= ' size="'.$size.'"';
 				}
@@ -1101,7 +1137,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 				echo ' name="',$this->cgi['prefix']['data'].$this->fds[$k],'"';
 				echo $len_props,' value="';
 				if($escape) echo fhtmlspecialchars($this->fdd[$k]['default']);
-				else echo $this->fdd[$k]['default'];
+			    else echo $this->fdd[$k]['default'];
 				echo '" />';
 			}
 			echo '</td>',"\n";
@@ -1112,9 +1148,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			}
 			echo '</tr>',"\n";
 		}
-	} /* }}} */
+	}
 
-	function display_copy_change_delete_record() /* {{{ */
+	function display_copy_change_delete_record()
 	{
 		/*
 		 * For delete or change: SQL SELECT to retrieve the selected record
@@ -1155,8 +1191,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 				/* There are two possibilities of readonly fields handling:
 				   1. Display plain text for readonly timestamps, dates and URLs.
 				   2. Display disabled input field
-				   In all cases particular readonly field will NOT be saved.
-				*/
+				   In all cases particular readonly field will NOT be saved. */
 				if ($this->readonly($k) && ($this->col_has_datemask($k) || $this->col_has_URL($k))) {
 					echo $this->display_delete_field($row, $k);
 				} elseif ($this->password($k)) {
@@ -1189,9 +1224,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 				echo '</tr>',"\n";
 			}
 		}
-	} /* }}} */
+	}
 
-	function display_change_field($row, $k) /* {{{ */ 
+	function display_change_field($row, $k)
 	{
 		$css_postfix    = @$this->fdd[$k]['css']['postfix'];
 		$css_class_name = $this->getCSSclass('input', null, true, $css_postfix);
@@ -1236,7 +1271,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		} else {
 			$len_props = '';
 			$maxlen = intval($this->fdd[$k]['maxlen']);
-			$size   = isset($this->fdd[$k]['size']) ? $this->fdd[$k]['size'] : min($maxlen, 60); 
+			$size   = isset($this->fdd[$k]['size']) ? $this->fdd[$k]['size'] : min($maxlen, 60);
 			if ($size > 0) {
 				$len_props .= ' size="'.$size.'"';
 			}
@@ -1251,16 +1286,16 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			echo '"',$len_props,' />',"\n";
 		}
 		echo '</td>',"\n";
-	} /* }}} */
+	}
 
-	function display_password_field($row, $k) /* {{{ */
+	function display_password_field($row, $k)
 	{
 		$css_postfix = @$this->fdd[$k]['css']['postfix'];
 		echo '<td class="',$this->getCSSclass('value', null, true, $css_postfix),'"';
 		echo $this->getColAttributes($k),">\n";
 		$len_props = '';
 		$maxlen = intval($this->fdd[$k]['maxlen']);
-		$size   = isset($this->fdd[$k]['size']) ? $this->fdd[$k]['size'] : min($maxlen, 60); 
+		$size   = isset($this->fdd[$k]['size']) ? $this->fdd[$k]['size'] : min($maxlen, 60);
 		if ($size > 0) {
 			$len_props .= ' size="'.$size.'"';
 		}
@@ -1272,21 +1307,21 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		echo ' name="',$this->cgi['prefix']['data'].$this->fds[$k],'" value="';
 		echo fhtmlspecialchars($row["qf$k"]),'"',$len_props,' />',"\n";
 		echo '</td>',"\n";
-	} /* }}} */
+	}
 
-	function display_delete_field($row, $k) /* {{{ */
+	function display_delete_field($row, $k)
 	{
 		$css_postfix    = @$this->fdd[$k]['css']['postfix'];
 		$css_class_name = $this->getCSSclass('value', null, true, $css_postfix);
 		echo '<td class="',$css_class_name,'"',$this->getColAttributes($k),">\n";
 		echo $this->cellDisplay($k, $row, $css_class_name);
 		echo '</td>',"\n";
-	} /* }}} */
+	}
 
 	/**
 	 * Returns CSS class name
 	 */
-	function getCSSclass($name, $position  = null, $divider = null, $postfix = null) /* {{{ */
+	function getCSSclass($name, $position  = null, $divider = null, $postfix = null)
 	{
 		static $div_idx = -1;
 		$elements = array($this->css['prefix'], $name);
@@ -1311,12 +1346,12 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			$elements[] = $postfix;
 		}
 		return join($this->css['separator'], $elements);
-	} /* }}} */
+	}
 
 	/**
 	 * Returns field cell HTML attributes
 	 */
-	function getColAttributes($k) /* {{{ */
+	function getColAttributes($k)
 	{
 		$colattrs = '';
 		if (isset($this->fdd[$k]['colattrs'])) {
@@ -1327,13 +1362,13 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			$colattrs .= ' nowrap';
 		}
 		return $colattrs;
-	} /* }}} */
+	}
 
 	/**
 	 * Substitutes variables in string
 	 * (this is very simple but secure eval() replacement)
 	 */
-	function substituteVars($str, $subst_ar) /* {{{ */
+	function substituteVars($str, $subst_ar)
 	{
 		$array = preg_split('/(\\$\w+)/', $str, -1, PREG_SPLIT_DELIM_CAPTURE);
 		$count = count($array);
@@ -1344,12 +1379,12 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			}
 		}
 		return join('', $array);
-	} /* }}} */
+	}
 
 	/**
 	 * Print URL
 	 */
-	function urlDisplay($k, $link_val, $disp_val, $css, $key) /* {{{ */
+	function urlDisplay($k, $link_val, $disp_val, $css, $key)
 	{
 		$escape = isset($this->fdd[$k]['escape']) ? $this->fdd[$k]['escape'] : true;
 		$ret  = '';
@@ -1407,9 +1442,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			$ret = '<a '.$target.'class="'.$css.'" href="'.$urllink.'">'.$urldisp.'</a>';
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	function cellDisplay($k, $row, $css) /* {{{ */
+	function cellDisplay($k, $row, $css)
 	{
 		$escape  = isset($this->fdd[$k]['escape']) ? $this->fdd[$k]['escape'] : true;
 		$key_rec = $row['qf'.$this->key_num];
@@ -1420,6 +1455,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			$value = intval($row["qf$k".'_timestamp']);
 			$value = $value ? @strftime($this->fdd[$k]['strftimemask'], $value) : '';
 		} else if ($this->is_values2($k, $row["qf$k"])) {
+if(isset($row['qf'.$k.'_idx'])){
 			$value = $row['qf'.$k.'_idx'];
 			if ($this->fdd[$k]['select'] == 'M') {
 				$value_ar  = explode(',', $value);
@@ -1437,11 +1473,13 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 					$escape = false;
 				}
 			}
+}
 		} elseif (isset($this->fdd[$k]['values2'][$row["qf$k"]])) {
 			$value = $this->fdd[$k]['values2'][$row["qf$k"]];
 		} else {
 			$value = $row["qf$k"];
 		}
+if(!isset($value)){$value='';}
 		$original_value = $value;
 		if (@$this->fdd[$k]['strip_tags']) {
 			$value = strip_tags($value);
@@ -1459,6 +1497,8 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			}
 		}
 /*		if (intval($this->fdd[$k]['trimlen']) > 0 && strlen($value) > $this->fdd[$k]['trimlen']) {
+
+
 			$value = preg_replace("[\r\n\t ]",' ',$value);
 			$value = substr($value, 0, $this->fdd[$k]['trimlen'] - 3).'...';
 		}
@@ -1478,7 +1518,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			$value = fhtmlspecialchars($value);
 		}
 		return nl2br($value);
-	} /* }}} */
+	}
 
 	/**
 	 * Creates HTML submit input element
@@ -1490,7 +1530,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 	 * @param	disabled		if mark the button as disabled
 	 * @param	js		any extra text in tags
 	 */
-	function htmlSubmit($name, $label, $css_class_name, $js_validation = true, $disabled = false, $js = NULL) /* {{{ */
+	function htmlSubmit($name, $label, $css_class_name, $js_validation = true, $disabled = false, $js = NULL)
 	{
 		// Note that <input disabled> isn't valid HTML, but most browsers support it
 		if($disabled == -1) return;
@@ -1505,7 +1545,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		if(isset($js)) $ret .= ' '.$js;
 		$ret .= ' />';
 		return $ret;
-	} /* }}} */
+	}
 
 	/**
 	 * Creates HTML hidden input element
@@ -1514,21 +1554,21 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 	 * @param	value	value
 	 */
 
-	function htmlHiddenSys($name, $value) /* {{{ */
+	function htmlHiddenSys($name, $value)
 	{
 		return $this->htmlHidden($this->cgi['prefix']['sys'].$name, $value);
-	} /* }}} */
+	}
 
-	function htmlHiddenData($name, $value) /* {{{ */
+	function htmlHiddenData($name, $value)
 	{
 		return $this->htmlHidden($this->cgi['prefix']['data'].$name, $value);
-	} /* }}} */
+	}
 
-	function htmlHidden($name, $value) /* {{{ */
+	function htmlHidden($name, $value)
 	{
 		return '<input type="hidden" name="'.fhtmlspecialchars($name)
 			.'" value="'.fhtmlspecialchars($value).'" />'."\n";
-	} /* }}} */
+	}
 
 	/**
 	 * Creates HTML select element (tag)
@@ -1575,7 +1615,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		}
 		$ret .= '</select>';
 		return $ret;
-	} /* }}} */
+	}
 
 	/**
 	 * Creates HTML checkboxes or radio buttons
@@ -1616,73 +1656,73 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 				$ret .= ' disabled';
 			}
 			$strip_tags && $value = strip_tags($value);
-			$escape && $value = fhtmlspecialchars($value);
+			$escape     && $value = fhtmlspecialchars($value);
 			$ret .= '>'.$value.'<br>'."\n";
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	/**
-	* Returns original variables HTML code for use in forms or links.
-	*
-	* @param   mixed   $origvars		string or array of original varaibles
-	* @param   string  $method			type of method ("POST" or "GET")
-	* @param   mixed   $default_value	default value of variables
-	*									if null, empty values will be skipped
-	* @return							get HTML code of original varaibles
-	*/
-	function get_origvars_html($origvars, $method = 'post', $default_value = '') /* {{{ */
-	{
-		$ret    = '';
-		$method = strtoupper($method);
-		if ($method == 'POST') {
-			if (! is_array($origvars)) {
-				$new_origvars = array();
-				foreach (explode('&', $origvars) as $param) {
-					$parts = explode('=', $param, 2);
-					if (! isset($parts[1])) {
-						$parts[1] = $default_value;
-					}
-					if (strlen($parts[0]) <= 0) {
-						continue;
-					}
-					$new_origvars[$parts[0]] = $parts[1];
-				}
-				$origvars =& $new_origvars;
-			}
-			foreach ($origvars as $key => $val) {
-				if (strlen($val) <= 0 && $default_value === null) {
-					continue;
-				}
-				$key = rawurldecode($key);
-				$val = rawurldecode($val);
-				$ret .= $this->htmlHidden($key, $val);
-			}
-		} else if (! strncmp('GET', $method, 3)) {
-			if (! is_array($origvars)) {
-				$ret .= $origvars;
-			} else {
-				foreach ($origvars as $key => $val) {
-					if (strlen($val) <= 0 && $default_value === null) {
-						continue;
-					}
-					$ret == '' || $ret .= '&amp;';
-					$ret .= fhtmlspecialchars(rawurlencode($key));
-					$ret .= '=';
-					$ret .= fhtmlspecialchars(rawurlencode($val));
-				}
-			}
-			if ($method[strlen($method) - 1] == '+') {
-				$ret = "?$ret";
-			}
-		} else {
-			trigger_error('Unsupported Platon::get_origvars_html() method: '
-				.$method, E_USER_ERROR);
-		}
-		return $ret;
-	} /* }}} */
+    /**
+     * Returns original variables HTML code for use in forms or links.
+     *
+     * @param   mixed   $origvars       string or array of original varaibles
+     * @param   string  $method         type of method ("POST" or "GET")
+     * @param   mixed   $default_value  default value of variables
+     *                                  if null, empty values will be skipped
+     * @return                          get HTML code of original varaibles
+     */
+    function get_origvars_html($origvars, $method = 'post', $default_value = '')
+    {
+        $ret    = '';
+        $method = strtoupper($method);
+        if ($method == 'POST') {
+            if (! is_array($origvars)) {
+                $new_origvars = array();
+                foreach (explode('&', $origvars) as $param) {
+                    $parts = explode('=', $param, 2);
+                    if (! isset($parts[1])) {
+                        $parts[1] = $default_value;
+}
+                    if (strlen($parts[0]) <= 0) {
+                        continue;
+}
+                    $new_origvars[$parts[0]] = $parts[1];
+}
+                $origvars =& $new_origvars;
+}
+            foreach ($origvars as $key => $val) {
+                if (strlen($val) <= 0 && $default_value === null) {
+                    continue;
+}
+                $key = rawurldecode($key);
+                $val = rawurldecode($val);
+                $ret .= $this->htmlHidden($key, $val);
+}
+} else if (! strncmp('GET', $method, 3)) {
+            if (! is_array($origvars)) {
+                $ret .= $origvars;
+} else {
+                foreach ($origvars as $key => $val) {
+                    if (strlen($val) <= 0 && $default_value === null) {
+                        continue;
+}
+                    $ret == '' || $ret .= '&amp;';
+                    $ret .= fhtmlspecialchars(rawurlencode($key));
+                    $ret .= '=';
+                    $ret .= fhtmlspecialchars(rawurlencode($val));
+}
+}
+            if ($method[strlen($method) - 1] == '+') {
+                $ret = "?$ret";
+}
+} else {
+            trigger_error('Unsupported Platon::get_origvars_html() method: '
+                    .$method, E_USER_ERROR);
+}
+        return $ret;
+}
 
-	function get_sfn_cgi_vars($alternative_sfn = null) /* {{{ */
+	function get_sfn_cgi_vars($alternative_sfn = null)
 	{
 		if ($alternative_sfn === null) { // FAST! (cached return value)
 			static $ret = null;
@@ -1697,9 +1737,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			$i++;
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	function get_default_cgi_prefix($type) /* {{{ */
+	function get_default_cgi_prefix($type)
 	{
 		switch ($type) {
 			case 'operation':	return 'PME_op_';
@@ -1707,34 +1747,33 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			case 'data':		return 'PME_data_';
 		}
 		return '';
-	} /* }}} */
+	}
 
-	function get_sys_cgi_var($name, $default_value = null) /* {{{ */
+	function get_sys_cgi_var($name, $default_value = null)
 	{
 		if (isset($this)) {
 			return $this->get_cgi_var($this->cgi['prefix']['sys'].$name, $default_value);
 		}
 		return phpMyEdit::get_cgi_var(phpMyEdit::get_default_cgi_prefix('sys').$name, $default_value);
-	} /* }}} */
+	}
 
-	function get_data_cgi_var($name, $default_value = null) /* {{{ */
+	function get_data_cgi_var($name, $default_value = null)
 	{
 		if (isset($this)) {
 			return $this->get_cgi_var($this->cgi['prefix']['data'].$name, $default_value);
 		}
 		return phpMyEdit::get_cgi_var(phpMyEdit::get_default_cgi_prefix('data').$name, $default_value);
-	} /* }}} */
+	}
 
-	function get_cgi_var($name, $default_value = null) /* {{{ */
-	{
+    function get_cgi_var($name, $default_value = null)
+    {
 		if (isset($this) && isset($this->cgi['overwrite'][$name])) {
 			return $this->cgi['overwrite'][$name];
 		}
-
-		static $magic_quotes_gpc = null;
-		if ($magic_quotes_gpc === null) {
+//		static $magic_quotes_gpc = null;
+//		if ($magic_quotes_gpc === null) {
 //			$magic_quotes_gpc = get_magic_quotes_gpc();
-		}
+//		}
 		$var = @$_GET[$name];
 		if (! isset($var)) {
 			$var = @$_POST[$name];
@@ -1756,9 +1795,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			return $this->cgi['append'][$name];
 		}
 		return $var;
-	} /* }}} */
+	}
 
-	function get_server_var($name) /* {{{ */
+	function get_server_var($name)
 	{
 		if (isset($_SERVER[$name])) {
 			return $_SERVER[$name];
@@ -1772,13 +1811,13 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			return $$name;
 		}
 		return null;
-	} /* }}} */
+	}
 
 	/*
-		* Debug functions
-	*/
+	 * Debug functions
+	 */
 
-	function print_get_vars ($miss = 'No GET variables found') // debug only /* {{{ */
+	function print_get_vars ($miss = 'No GET variables found') // debug only
 	{
 		// we parse form GET variables
 		if (is_array($_GET)) {
@@ -1802,9 +1841,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			echo $miss;
 			echo '</p>';
 		}
-	} /* }}} */
+	}
 
-	function print_post_vars($miss = 'No POST variables found')  // debug only /* {{{ */
+	function print_post_vars($miss = 'No POST variables found')  // debug only
 	{
 		global $_POST;
 		// we parse form POST variables
@@ -1829,9 +1868,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			echo $miss;
 			echo '</p>';
 		}
-	} /* }}} */
+	}
 
-	function print_vars ($miss = 'Current instance variables')  // debug only /* {{{ */
+	function print_vars ($miss = 'Current instance variables')  // debug only
 	{
 		echo "$miss   ";
 		echo 'page_name=',$this->page_name,'   ';
@@ -1867,12 +1906,12 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		echo 'cancelview=',$this->cancelview,'   ';
 		echo 'operation=',$this->operation,'   ';
 		echo "\n";
-	} /* }}} */
+	}
 
 	/*
-		* Display buttons at top and bottom of page
-	*/
-	function display_list_table_buttons($position, $listall = false) /* {{{ */
+	 * Display buttons at top and bottom of page
+	 */
+	function display_list_table_buttons($position, $listall = false)
 	{
 		if (($but_str = $this->display_buttons($position)) === null)
 			return;
@@ -1902,12 +1941,12 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		if($this->display['num_pages'] || $this->display['num_records']) echo '</td>';
 		echo '</tr></table>',"\n";
 		if($position == 'up') echo '<hr size="1" class="'.$this->getCSSclass('hr', 'up').'" />'."\n";
-	} /* }}} */
+	}
 
 	/*
-		* Display buttons at top and bottom of page
-	*/
-	function display_record_buttons($position) /* {{{ */
+	 * Display buttons at top and bottom of page
+	 */
+	function display_record_buttons($position)
 	{
 		if (($but_str = $this->display_buttons($position)) === null)
 			return;
@@ -1929,31 +1968,33 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			if ($this->tabs_enabled()) $this->display_tab_labels('up');
 			echo '<hr size="1" class="',$this->getCSSclass('hr', 'up'),'" />',"\n";
 		}
-	} /* }}} */
+	}
 
-	function display_buttons($position) /* {{{ */
+	function display_buttons($position)
 	{
 		$nav_fnc = 'nav_'.$position;
 		if(! $this->$nav_fnc())
-			return;
-		$buttons = (is_array($this->buttons[$this->page_type][$position]))
-			? $this->buttons[$this->page_type][$position]
-			: $this->default_buttons[$this->page_type];
+			{return;}
+//		$buttons = (is_array($this->buttons[$this->page_type][$position]))
+//			? $this->buttons[$this->page_type][$position]
+//			: $this->default_buttons[$this->page_type];
+$buttons = $this->default_buttons[$this->page_type];
+if(!isset($ret)){$ret='';} //initialized $ret
 		foreach ($buttons as $name) {
 			$ret .= $this->display_button($name, $position)."\n";
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	function display_button($name, $position = 'up') /* {{{ */
+	function display_button($name, $position = 'up')
 	{
 		if (is_array($name)) {
 			if (isset($name['code'])) return $name['code'];
 			return $this->htmlSubmit($name['name'], $name['value'], $name['css'], $name['js_validation'], $name['disabled'], $name['js']);
 		}
 		$disabled = 1; // show disabled by default
-		if ($name[0] == '+') { $name = substr($name, 1); $disabled =  0; } // always show disabled as enabled
-		if ($name[0] == '-') { $name = substr($name, 1); $disabled = -1; } // don't show disabled
+		if ($name[0] == '+') { $name = substr($name, 1); $disabled =  0;} // always show disabled as enabled
+		if ($name[0] == '-') { $name = substr($name, 1); $disabled = -1;} // don't show disabled
 		if ($name == 'cancel') {
 			return $this->htmlSubmit('cancel'.$this->page_types[$this->page_type], 'Cancel',
 					$this->getCSSclass('cancel', $position), false);
@@ -1974,8 +2015,8 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		}
 		if (in_array($name, array('save','more'))) {
 			$validation = true; // if js validation
-			if     ($this->page_type == 'D' && $name == 'save' ) { $value = 'Delete'; $validation = false; }
-			elseif ($this->page_type == 'C' && $name == 'more' ) { $value = 'Apply'; }
+			if     ($this->page_type == 'D' && $name == 'save' ) { $value = 'Delete'; $validation = false;}
+			elseif ($this->page_type == 'C' && $name == 'more' ) { $value = 'Apply';}
 			else $value = ucfirst($name);
 			return $this->htmlSubmit($name.$this->page_types[$this->page_type], $value,
 					$this->getCSSclass($name, $position), $validation);
@@ -2004,12 +2045,12 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			$ret .= ' name="'.$this->cgi['prefix']['sys'].'navpn'.$position.'" value="'.($current_page+1).'"';
 			$ret .= ' size="'.(strlen($total_pages)+1).'" maxlength="'.(strlen($total_pages)+1).'"';
 			// TODO some js here.... on enter submit, on click erase ?...
-			$ret .=' oneypress="return PE_filter_handler(this.form, event);" />';
+			$ret .=' onkeypress="return PE_filter_handler(this.form, event);" />'; // corrected (was "oneypress")
 			return $ret;
 		}
 		if ($name == 'goto_combo') {
 			$disabledgoto = !($listall || ($disablednext && $disabledprev)) ? '' : ' disabled';
-			if ($disablegoto != '' && $disabled < 0) return;
+			if ($disabledgoto != '' && $disabled < 0) return; // corrected (was "$disablegoto")
 			$kv_array = array();
 			for ($i = 0; $i < $total_pages; $i++) {
 				$kv_array[$this->inc * $i] = $i + 1;
@@ -2036,9 +2077,9 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		}
 		if(isset($this->labels[$name])) return $this->labels[$name];
 		return $name;
-	} /* }}} */
+	}
 
-	function number_of_recs() /* {{{ */
+	function number_of_recs()
 	{
 		$count_parts = array(
 				'type'   => 'select',
@@ -2048,12 +2089,12 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		$res = $this->myquery($this->get_SQL_main_list_query($count_parts), __LINE__);
 		$row = $this->sql_fetch($res, 'n');
 		$this->total_recs = $row[0];
-	} /* }}} */
+	}
 
 	/*
-		* Table Page Listing
-	*/
-	function list_table() /* {{{ */
+	 * Table Page Listing
+	 */
+	function list_table()
 	{
 		if ($this->fm == '') {
 			$this->fm = 0;
@@ -2085,16 +2126,16 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 			echo '<hr size="1" />';
 		}
 		/*
-			* If user is allowed to Change/Delete records, we need an extra column
-			* to allow users to select a record
-		*/
+		 * If user is allowed to Change/Delete records, we need an extra column
+		 * to allow users to select a record
+		 */
 		$select_recs = $this->key != '' &&
 			($this->change_enabled() || $this->delete_enabled() || $this->view_enabled());
 		// Are we doing a listall?
 		$listall = $this->inc <= 0;
 		/*
-			* Display the SQL table in an HTML table
-		*/
+		 * Display the SQL table in an HTML table
+		 */
 		$this->form_begin();
 		echo $this->get_origvars_html($this->get_sfn_cgi_vars());
 		echo $this->htmlHiddenSys('fl', $this->fl);
@@ -2111,8 +2152,8 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		echo '<table class="',$this->getCSSclass('main'),'" summary="',$this->tb,'">',"\n";
 		echo '<tr class="',$this->getCSSclass('header'),'">',"\n";
 		/*
-			* System (navigation, selection) columns counting
-		*/
+		 * System (navigation, selection) columns counting
+		 */
 		$sys_cols  = 0;
 		$sys_cols += intval($this->filter_enabled() || $select_recs);
 		if ($sys_cols > 0) {
@@ -2177,7 +2218,7 @@ function '.$this->js['prefix'].'filter_handler(theForm, theEvent)
 		$qparts['where'] = $this->get_SQL_where_from_query_opts();
 		// build up the ORDER BY clause
 		if (isset($this->sfn)) {
-$_SESSION['lastrec']=''; // revert to last record
+$_SESSION['lastrec']=''; //Unset record position
 			$sort_fields   = array();
 			$sort_fields_w = array();
 			foreach ($this->sfn as $field) {
@@ -2313,12 +2354,12 @@ $_SESSION['lastrec']=''; // revert to last record
 				}
 				echo '</tr>',"\n";
 			}
-		} // }}}
-		
+		}
+
 		/*
 		 * Display sorting sequence
 		 */
-		if ($qparts['orderby'] && $this->display['sort']) {
+		if (isset($qparts['orderby']) && $this->display['sort']) {
 			$css_class_name = $this->getCSSclass('sortinfo');
 			echo '<tr class="',$css_class_name,'">',"\n";
 			echo '<td class="',$css_class_name,'" colspan="',$sys_cols,'">';
@@ -2334,8 +2375,8 @@ $_SESSION['lastrec']=''; // revert to last record
 		}
 
 		/*
-		 * Display the current query
-		 */
+		 *Display the current query
+		*/
 		$text_query = $this->get_SQL_where_from_query_opts(null, true);
 		if ($text_query != '' && $this->display['query']) {
 			$css_class_name = $this->getCSSclass('queryinfo');
@@ -2380,7 +2421,7 @@ $_SESSION['lastrec']=''; // revert to last record
 				|| ($fetched && $row != false)) {
 			$fetched = false;
 			echo '<tr class="',$this->getCSSclass('row', null, 'next'),'">',"\n";
-			if ($sys_cols) { /* {{{ */
+			if ($sys_cols) {
 				$key_rec     = $row['qf'.$this->key_num];
 				$queryAppend = fhtmlspecialchars('&'.$this->cgi['prefix']['sys'].'rec'.'='.$key_rec);
 				$viewQuery   = $qpviewStr   . $queryAppend;
@@ -2437,7 +2478,6 @@ $_SESSION['lastrec']=''; // revert to last record
 						$printed_out = false;
 						if ($this->view_enabled()) {
 							$printed_out = true;
-							//echo '<a href="',$viewQuery,'" title="',$viewTitle,'" class="',$css_class_name,'">V</a>';
 							echo '<a id="',fhtmlspecialchars($key_rec),'" href="',$viewQuery,'" title="',$viewTitle,'" class="',$css_class_name,'">V</a>'; // Added id
 						}
 						if ($this->change_enabled()) {
@@ -2472,8 +2512,8 @@ $_SESSION['lastrec']=''; // revert to last record
 				} elseif ($this->filter_enabled()) {
 					echo '<td class="',$css_class_name,'" colspan="',$sys_cols,'">&nbsp;</td>',"\n";
 				}
-			} /* }}} */
-			for ($k = 0; $k < $this->num_fds; $k++) { /* {{{ */
+			}
+			for ($k = 0; $k < $this->num_fds; $k++) {
 				$fd = $this->fds[$k];
 				if (! $this->displayed[$k]) {
 					continue;
@@ -2487,13 +2527,14 @@ $_SESSION['lastrec']=''; // revert to last record
 				echo '<td class="',$css_class_name,'"',$this->getColAttributes($fd),'>';
 				echo $this->cellDisplay($k, $row, $css_class_name);
 				echo '</td>',"\n";
-			} /* }}} */
+			}
 			echo '</tr>',"\n";
 		}
 
 		/*
 		 * Display and accumulate column aggregation info, do totalling query
 		 * XXX this feature does not work yet!!!
+
 		// aggregates listing (if any)
 		if ($$var_to_total){
 			// do the aggregate query if necessary
@@ -2515,6 +2556,7 @@ $_SESSION['lastrec']=''; // revert to last record
 			echo printarray($vars_to_total);
 			echo '</td>';
 			echo '<td colspan="'.($this->num_fds-1).'">'.$var_to_total.' '.$$var_to_total.'</td>';
+
 			// display the results
 			for ($k=0;$k<$this->num_fds;$k++) {
 				$fd = $this->fds[$k];
@@ -2536,9 +2578,9 @@ $_SESSION['lastrec']=''; // revert to last record
 		echo '</table>',"\n"; // end of table rows listing
 		$this->display_list_table_buttons('down', $listall);
 		$this->form_end();
-	} /* }}} */
+	}
 
-	function display_record() /* {{{ */
+	function display_record()
 	{
 		// PRE Triggers
 		$ret = true;
@@ -2569,7 +2611,7 @@ $_SESSION['lastrec']=''; // revert to last record
 		if ($this->cgi['persist'] != '') {
 			echo $this->get_origvars_html($this->cgi['persist']);
 		}
-$_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
+$_SESSION['lastrec']=$this->rec; // Set record number (=html anchor element "id")
 		echo $this->get_origvars_html($this->get_sfn_cgi_vars());
 		echo $this->get_origvars_html($this->qfn);
 		echo $this->htmlHiddenSys('cur_tab', $this->dhtml['prefix'].'tab'.$this->cur_tab);
@@ -2588,18 +2630,18 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			$this->display_copy_change_delete_record();
 		}
 		echo '</table>',"\n";
-		if ($this->tabs_enabled()) {
+ 		if ($this->tabs_enabled()) {
 			echo '</div>',"\n";
 		}
 		$this->display_record_buttons('down');
 		$this->form_end();
-	} /* }}} */
+	}
 
 	/*
 	 * Action functions
 	 */
 
-	function do_add_record() /* {{{ */
+	function do_add_record()
 	{
 		// Preparing query
 		$query       = '';
@@ -2641,7 +2683,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 				$value = "'".addslashes($val)."'";
 			}
 			if ($query == '') {
-				$query = 'INSERT INTO '.$this->sd.$this->tb.$this->ed.' ('.$this->sd.$fd.$this->ed.''; // )
+				$query = 'INSERT INTO '.$this->sd.$this->tb.$this->ed.' ('.$this->sd.$fd.$this->ed.'';
 				$query2 = ') VALUES ('.$value.'';
 			} else {
 				$query  .= ', '.$this->sd.$fd.$this->ed.'';
@@ -2674,9 +2716,9 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			return false;
 		}
 		return true;
-	} /* }}} */
+	}
 
-	function do_change_record() /* {{{ */
+	function do_change_record()
 	{
 		// Preparing queries
 		$query_real   = '';
@@ -2779,14 +2821,14 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			return false;
 		}
 		return true;
-	} /* }}} */
+	}
 
-	function do_delete_record() /* {{{ */
+	function do_delete_record()
 	{
 		// Additional query
-		$query = 'SELECT * FROM '.$this->sd.$this->tb.$this->ed.' WHERE ('.$this->sd.$this->key.$this->ed.' = '
-				.$this->key_delim.$this->rec.$this->key_delim.')'; // )
-		$res = $this->myquery($query, __LINE__);
+		$query   = 'SELECT * FROM '.$this->sd.$this->tb.$this->ed.' WHERE ('.$this->sd.$this->key.$this->ed.' = '
+				.$this->key_delim.$this->rec.$this->key_delim.')';
+		$res     = $this->myquery($query, __LINE__);
 		$oldvals = $this->sql_fetch($res);
 		$this->sql_free_result($res);
 		// Creating array of changed keys ($changed)
@@ -2798,7 +2840,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		}
 		// Real query
 		$query = 'DELETE FROM '.$this->tb.' WHERE ('.$this->key.' = '
-				.$this->key_delim.$this->rec.$this->key_delim.')'; // )
+				.$this->key_delim.$this->rec.$this->key_delim.')';
 		$res = $this->myquery($query, __LINE__);
 		$this->message = $this->sql_affected_rows($this->dbh).' '.$this->labels['record deleted'];
 		if (! $res) {
@@ -2823,9 +2865,9 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			return false;
 		}
 		return true;
-	} /* }}} */
+	}
 
-	function email_notify($old_vals, $new_vals) /* {{{ */
+	function email_notify($old_vals, $new_vals)
 	{
 		if (! function_exists('mail')) {
 			return false;
@@ -2876,7 +2918,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		$subject  = @$this->notify['prefix'].$subject.' '.$this->dbp.$this->tb;
 		$subject  = trim($subject); // just for sure
 		$wrap_w   = intval(@$this->notify['wrap']);
-		$wrap_w > 0 || $wrap_w = 72;
+	   	$wrap_w > 0 || $wrap_w = 72;
 		$from     = (string) @$this->notify['from'];
 		$from != '' || $from = 'webmaster@'.strtolower($this->get_server_var('SERVER_NAME'));
 		$headers  = 'From: '.$from."\n".'X-Mailer: PHP/'.phpversion().' (phpMyEdit)';
@@ -2888,7 +2930,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			}
 		}
 		return true;
-	} /* }}} */
+	}
 
 	/*
 	 * Apply triggers function
@@ -2896,7 +2938,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 	 * Break and return false as soon as a trigger return false
 	 * we need a reference on $newvals to be able to change value before insert/update
 	 */
-	function exec_triggers($op, $step, $oldvals, &$changed, &$newvals) /* {{{ */
+	function exec_triggers($op, $step, $oldvals, &$changed, &$newvals)
 	{
 		if (! isset($this->triggers[$op][$step])) {
 			return true;
@@ -2912,18 +2954,18 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			$ret = include($trig);
 		}
 		return $ret;
-	} /* }}} */
+	}
 
-	function exec_triggers_simple($op, $step) /* {{{ */
+	function exec_triggers_simple($op, $step)
 	{
 		$oldvals = $newvals = $changed = array();
 		return $this->exec_triggers($op, $step, $oldvals, $changed, $newvals);
-	} /* }}} */
-	
+	}
+
 	/*
 	 * Recreate functions
 	 */
-	function recreate_fdd($default_page_type = 'L') /* {{{ */
+	function recreate_fdd($default_page_type = 'L')
 	{
 		// TODO: one level deeper browsing
 		$this->page_type = $default_page_type;
@@ -2973,9 +3015,9 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 				unset($this->fdd[$column][$col_option]);
 			}
 		}
-	} /* }}} */
+	}
 
-	function recreate_displayed() /* {{{ */
+	function recreate_displayed()
 	{
 		$field_num            = 0;
 		$num_fields_displayed = 0;
@@ -2990,8 +3032,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			$this->fds[$field_num] = $key;
 			$this->fdn[$key] = $field_num;
 			/* We must use here displayed() function, because displayed[] array
-			   is not created yet. We will simultaneously create that array as well.
-			*/
+			   is not created yet. We will simultaneously create that array as well. */
 			if ($this->displayed[$field_num] = $this->displayed($field_num)) {
 				$num_fields_displayed++;
 			}
@@ -3047,9 +3088,9 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		}
 		$this->sfn = array_unique($this->sfn);
 		return true;
-	} /* }}} */
+	}
 
-	function backward_compatibility() /* {{{ */
+	function backward_compatibility()
 	{
 		foreach (array_keys($this->fdd) as $column) {
 			// move ['required'] to ['js']['required']
@@ -3058,29 +3099,30 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			}
 			// move 'HWR' flags from ['options'] into ['input']
 			if (isset($this->fdd[$column]['options'])) {
+				if(!isset($this->fdd[$column]['input'])) {$this->fdd[$column]['input']='';}
 				stristr($this->fdd[$column]['options'], 'H') && $this->fdd[$column]['input'] .= 'H';
 				stristr($this->fdd[$column]['options'], 'W') && $this->fdd[$column]['input'] .= 'W';
 				stristr($this->fdd[$column]['options'], 'R') && $this->fdd[$column]['input'] .= 'R';
 			}
 		}
-	} /* }}} */
+	}
 
 	/*
 	 * Error handling function
 	 */
-	function error($message, $additional_info = '') /* {{{ */
+	function error($message, $additional_info = '')
 	{
 		echo '<h1>phpMyEdit error: ',fhtmlspecialchars($message),'</h1>',"\n";
 		if ($additional_info != '') {
 			echo '<hr size="1" />',fhtmlspecialchars($additional_info);
 		}
 		return false;
-	} /* }}} */
+	}
 
 	/*
 	 * Database connection function
 	 */
-	function connect() /* {{{ */
+	function connect()
 	{
 		if (isset($this->dbh)) {
 			return true;
@@ -3099,12 +3141,12 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 			return false;
 		}
 		return true;
-	} /* }}} */
-	
+	}
+
 	/*
-	 * The workhorse
-	 */
-	function execute() /* {{{ */
+	* The workhorse
+	*/
+	function execute()
 	{
 		//  DEBUG -  uncomment to enable
 		/*
@@ -3123,6 +3165,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		// Let's do explicit quoting - it's safer
 		// ### Function set_magic_quotes_runtime() is deprecated ###
 		//set_magic_quotes_runtime(0);
+
 		// Checking if language file inclusion was successful
 		if (! is_array($this->labels)) {
 			$this->error('could not locate language files', 'searched path: '.$this->dir['lang']);
@@ -3155,8 +3198,10 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		// Save/More Button - database operations
 		if ($this->saveadd == $this->labels['Save'] || $this->savecopy == $this->labels['Save']) {
 			$this->add_enabled() && $this->do_add_record();
-			unset($this->saveadd);
-			unset($this->savecopy);
+//			unset($this->saveadd);
+$this->saveadd='';
+//			unset($this->savecopy);
+$this->savecopy='';
 			$this->recreate_fdd();
 		}
 		elseif ($this->moreadd == $this->labels['More']) {
@@ -3168,7 +3213,8 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		}
 		elseif ($this->savechange == $this->labels['Save']) {
 			$this->change_enabled() && $this->do_change_record();
-			unset($this->savechange);
+//			unset($this->savechange);
+$this->savechange='';
 			$this->recreate_fdd();
 		}
 		elseif ($this->morechange == $this->labels['Apply']) {
@@ -3180,7 +3226,8 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		}
 		elseif ($this->savedelete == $this->labels['Delete']) {
 			$this->delete_enabled() && $this->do_delete_record();
-			unset($this->savedelete);
+//			unset($this->savedelete);
+$this->savedelete='';
 			$this->recreate_fdd();
 		}
 
@@ -3210,13 +3257,13 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		if ($this->display['time'] && $this->timer != null) {
 			echo $this->timer->end(),' miliseconds';
 		}
-	} /* }}} */
+	}
 
 	/*
 	 * Class constructor
 	 */
-	function __construct($opts) /* {{{ */
-//	 */phpMyEdit($opts) /* {{{ */
+	function __construct($opts)
+//	 */phpMyEdit($opts)
 	{
 		// Set desirable error reporting level
 //		$error_reporting = error_reporting(E_ALL & ~E_NOTICE);
@@ -3253,7 +3300,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		if (! isset($this->page_name)) {
 			$this->page_name = basename($this->get_server_var('PHP_SELF'));
 			isset($this->page_name) || $this->page_name = $this->tb;
-		} 
+		}
 		$this->display['query'] = @$opts['display']['query'];
 		$this->display['sort']  = @$opts['display']['sort'];
 		$this->display['time']  = @$opts['display']['time'];
@@ -3297,7 +3344,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		if (! $this->nav_up() && ! $this->nav_down()) {
 			$this->navigation .= 'D'; // down position is default
 		}
-		$this->buttons = $opts['buttons'];
+if(isset($opts['buttons'])){$this->buttons = $opts['buttons'];} else {$this->buttons = $this->default_buttons;}
 		// Language labels (must go after navigation)
 		$this->labels = $this->make_language_labels(isset($opts['language'])
 				? $opts['language'] : $this->get_server_var('HTTP_ACCEPT_LANGUAGE'));
@@ -3344,7 +3391,7 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		elseif($navfmup!=NULL && $navfmup != $this->fm) $this->navfm = $navfmup;
 		elseif($navpndown!=NULL && ($navpndown-1)*$this->inc != $this->fm) $this->navfm = ($navpndown-1)*$this->inc;
 		elseif($navpnup!=NULL && ($navpnup-1)*$this->inc != $this->fm) $this->navfm = ($navpnup-1)*$this->inc;
-		else $this->navfm = $this->fm; 
+		else $this->navfm = $this->fm;
 		$this->operation = $this->get_sys_cgi_var('operation');
 		$oper_prefix_len = strlen($this->cgi['prefix']['operation']);
 		if (! strncmp($this->cgi['prefix']['operation'], $this->operation, $oper_prefix_len)) {
@@ -3392,15 +3439,16 @@ $_SESSION['lastrec']=$this->rec; //Detect and file record number(=id)
 		$this->gather_query_opts();
 		// Call to action
 		!isset($opts['execute']) && $opts['execute'] = 1;
+//$output=print_r($this,true);file_put_contents('php-errors.log',$output,FILE_APPEND); // Debug
 		$opts['execute'] && $this->execute();
 		// Restore original error reporting level
 		error_reporting($error_reporting);
-	} /* }}} */
+	}
 
 }
 /* Modeline for ViM {{{
  * vim:set ts=4:
  * vim600:fdm=marker fdl=0 fdc=0:
- * }}} */
+ *}}} */
 
 ?>
