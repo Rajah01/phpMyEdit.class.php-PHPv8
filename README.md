@@ -17,4 +17,4 @@ For Production use, change E_ALL to E_ALL & ~E_NOTICE (line 3283).
 
 Apart from fixes to the code (some enumerated by posters at kimballrexford.com), the most consequential changes were to MySQLI configuration, described in README.MYSQLI_and_UTF8.md
 
-Feedback, suggestons, improvement welcomed.
+Feedback, corrections, suggestions, improvement all welcomed.
