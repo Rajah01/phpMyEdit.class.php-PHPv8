@@ -32,9 +32,9 @@
 //
 // ***********************
 //
-//  updated January 2022, Robert Holmgren
+//  updated 1 January 2022, Robert Holmgren, rjh@holmgren.org
 //  updated for PHP version 8 (compatible with v7)
-//  many fixes (but YMMV)
+//  many edits/fixes (but YMMV)
 //
 // ***********************
 
