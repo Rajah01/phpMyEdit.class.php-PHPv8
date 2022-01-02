@@ -12,4 +12,30 @@ YMMV: Your mileage may vary! Compare this code to an earlier version of phpMyEdi
 
 Not specifically related to phpMyEdit, but important nonetheless: For successful UTF-8 character encoding, changes may be required to MySQL configuration. See README.MYSQLI_and_UTF8.md
 
+--------------------------
+
+PHP's "htmlspecialchars()" function is modified in this version to become "htmlspecialchars($myString,ENT_SUBSTITUTE,'UTF-8',true);" via the added global function "fhtmlspecialchars()" (at Top-File), to which all htmlspecialchars calls are redirected.
+
+--------------------------
+
+This version of phpMyEdit implements one optional tweak, which ensures that after Viewing or Changing any record, the calling program returns to and focuses upon that record instead of the first record.
+
+It sets a $_SESSION['lastrec'] variable that contains the record number being Viewed or Changed. If you do NOT implement this option in your calling programs, it is entirely benign, the only cost being a $_SESSION variable (alternatively, delete the two lines that reference $_SESSION['lastrec']).
+
+If you do implement this option, it requires three statements in your client calling programs:
+
+[In PHP, at TopFile:]
+
+	<?php if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']="";} ?>
+
+[In HTML <head> section:]
+
+	echo '<script> function jumpto(lastrec){ var el=document.getElementById(lastrec); el.scrollIntoView({block:"center"}); } </script>';
+
+[HTML body statement:]
+
+	echo '<body'; if($_SESSION['lastrec']!=""){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')";';} echo '>';
+
+--------------------------
+
 Feedback, corrections, suggestions, improvement all welcomed.

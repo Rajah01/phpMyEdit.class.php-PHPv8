@@ -43,28 +43,3 @@ In "my.ini|cnf":
 	collation-server=utf8mb4_general_ci
 
 --------------------------
-
-PHP's "htmlspecialchars()" function is modified in this version to become "htmlspecialchars($myString,ENT_SUBSTITUTE,'UTF-8',true);" via the added global function "fhtmlspecialchars()" (at Top-Of-File), to which all htmlspecialchars calls are redirected.
-
---------------------------
-
-This version of phpMyEdit implements one optional tweak, which ensures that after Viewing or Changing any record, the calling program returns to and focuses upon that record rather than TopOfFile.
-
-It sets a $_SESSION['lastrec'] variable that contains the record number being displayed. If you do NOT implement this option in your calling PHP programs, it is entirely benign, the only cost being a $_SESSION variable (alternatively, delete the two lines that reference $_SESSION['lastrec']).
-
-If you do wish to implement this option, it requires three statements in your client PHP calling programs:
-
-	<?php
-
-	...
-
-1)	if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']="";}
-
-	...
-
-[In HTML:]
-
-2)	echo '<script> function jumpto(lastrec){ var el=document.getElementById(lastrec); el.scrollIntoView({block:"center"}); } </script>';
-
-3)	echo '<body'; if($_SESSION['lastrec']!=""){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')";';} echo '>';
-
