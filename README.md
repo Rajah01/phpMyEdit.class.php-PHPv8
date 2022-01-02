@@ -28,7 +28,7 @@ If you do implement this option, it requires three statements in your client cal
 
 	<?php if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']="";} ?>
 
-[In HTML <head> section:]
+[In HTML head section:]
 
 	echo '<script> function jumpto(lastrec){ var el=document.getElementById(lastrec); el.scrollIntoView({block:"center"}); } </script>';
 
