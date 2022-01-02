@@ -42,6 +42,8 @@ In "my.ini|cnf":
 
 	collation-server=utf8mb4_general_ci
 
+--------------------------
+
 PHP's "htmlspecialchars()" function is modified in this version to become "htmlspecialchars($myString,ENT_SUBSTITUTE,'UTF-8',true);" via the added global function "fhtmlspecialchars()" (at Top-Of-File), to which all htmlspecialchars calls are redirected.
 
 --------------------------
@@ -56,31 +58,13 @@ If you do wish to implement this option, it requires three statements in your cl
 
 	...
 
-	if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']="";}
+1)	if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']="";}
 
 	...
 
 [In HTML:]
 
-	echo '<script>
+2)	echo '<script> function jumpto(lastrec){ var el=document.getElementById(lastrec); el.scrollIntoView({block:"center"}); } </script>';
 
-function jumpto(lastrec){
-
-	var el=document.getElementById(lastrec);
-
-	el.scrollIntoView({block:"center"});
-
-}
-
-</script>
-
-</head>
-
-<body';
-
-	if($_SESSION['lastrec']!=""){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')";';}
-
-	echo '>';
-
-	...
+3)	echo '<body'; if($_SESSION['lastrec']!=""){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')";';} echo '>';
 
