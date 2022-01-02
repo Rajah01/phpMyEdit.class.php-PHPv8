@@ -1,6 +1,6 @@
-The most consequential changes are to MySQLI configuration, ensuring that UTF-8 uses the new "utf8mb4" default in all tables of the "information_schema" database, in client databases and calling programs, and in my.ini|my.cnf, described in README2.md.
+Change MySQLI configuration, to ensure that UTF-8 uses the new "utf8mb4" default in all tables (especially "SCHEMATA") of the "information_schema" database, in client databases and calling programs, and in "my.ini|my.cnf".
 
-I largely followed extensive guidance at https://www.toptal.com/php/a-utf-8-primer-for-php-and-mysql
+I largely follow extensive guidance at https://www.toptal.com/php/a-utf-8-primer-for-php-and-mysql
 
 When done, the relevant output of
 
@@ -24,7 +24,7 @@ is similar to:
 
 If still "latin1" (or "utf8mb3", or whatever), reexamine your config.
 
-In my.ini|cnf:
+In "my.ini|cnf":
 
 	[client]
 
@@ -42,11 +42,13 @@ In my.ini|cnf:
 
 	collation-server=utf8mb4_general_ci
 
-PHP's "htmlspecialchars()" function is modified in this version to become "htmlspecialchars($myString,ENT_SUBSTITUTE,'UTF-8',true);" via an added global function "fhtmlspecialchars()" (at Top-Of-File), to which all htmlspecialchars calls are redirected.
+PHP's "htmlspecialchars()" function is modified in this version to become "htmlspecialchars($myString,ENT_SUBSTITUTE,'UTF-8',true);" via the added global function "fhtmlspecialchars()" (at Top-Of-File), to which all htmlspecialchars calls are redirected.
 
-There is one optional tweak, which ensures that after Viewing or Changing any record, the calling program returns to and focuses upon that record rather than TopOfFile.
+--------------------------
 
-It sets a $_SESSION['lastrec'] variable that contains the record number being displayed. If you don't implement this option in your calling PHP programs, it is entirely benign, the only cost being a $_SESSION variable (alternatively, delete the two lines that reference $_SESSION['lastrec']).
+This version of phpMyEdit implements one optional tweak, which ensures that after Viewing or Changing any record, the calling program returns to and focuses upon that record rather than TopOfFile.
+
+It sets a $_SESSION['lastrec'] variable that contains the record number being displayed. If you do NOT implement this option in your calling PHP programs, it is entirely benign, the only cost being a $_SESSION variable (alternatively, delete the two lines that reference $_SESSION['lastrec']).
 
 If you do wish to implement this option, it requires three statements in your client PHP calling programs:
 
@@ -71,8 +73,6 @@ function jumpto(lastrec){
 }
 
 </script>
-
-...
 
 </head>
 
