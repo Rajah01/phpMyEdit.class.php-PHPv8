@@ -10,8 +10,6 @@ For Production use, change "E_ALL" to "E_ALL & ~E_NOTICE" (line 3270).
 
 YMMV: Your mileage may vary! Compare this code to an earlier version of phpMyEdit if you encounter errors.
 
-Not specifically related to phpMyEdit, but important nonetheless: For successful UTF-8 character encoding, changes may be required to MySQL configuration. See README.MYSQLI_and_UTF8.md
-
 --------------------------
 
 PHP's "htmlspecialchars()" function is modified in this version to become "htmlspecialchars($myString,ENT_SUBSTITUTE,'UTF-8',true);" via the added global function "fhtmlspecialchars()" (at Top-File), to which all htmlspecialchars calls are redirected.
@@ -26,7 +24,7 @@ If you do implement this option, it requires three statements in your client cal
 
 [In PHP, at TopFile:]
 
-	<?php if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']="";} ?>
+	<?php if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']='';} ?>
 
 [In HTML head section:]
 
@@ -34,7 +32,11 @@ If you do implement this option, it requires three statements in your client cal
 
 [HTML body statement:]
 
-	echo '<body'; if($_SESSION['lastrec']!=""){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')";';} echo '>';
+	echo '<body'; if($_SESSION['lastrec']!=""){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')"';} echo '>';
+
+--------------------------
+
+Not specifically related to phpMyEdit: For successful UTF-8 character encoding, changes may be required to MySQL configuration. See README.MYSQLI_and_UTF8.md
 
 --------------------------
 
