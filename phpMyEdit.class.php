@@ -32,9 +32,9 @@
 //
 // ***********************
 //
-//  updated 1 January 2022, Robert Holmgren, rjh@holmgren.org
+//  updated 2 January 2022, Robert Holmgren, rjh@holmgren.org
 //  updated for PHP version 8 (compatible with v7)
-//  many edits/fixes (but YMMV)
+//  edits/fixes (YMMV)
 //
 // ***********************
 
@@ -1802,10 +1802,10 @@ if(!isset($value)){$value='';}
 		if (isset($_SERVER[$name])) {
 			return $_SERVER[$name];
 		}
-		global $HTTP_SERVER_VARS;
-		if (isset($HTTP_SERVER_VARS[$name])) {
-			return $HTTP_SERVER_VARS[$name];
-		}
+//		global $_SERVER;
+//		if (isset($_SERVER[$name])) {
+//			return $_SERVER[$name];
+//		}
 		global $$name;
 		if (isset($$name)) {
 			return $$name;
@@ -3266,8 +3266,8 @@ $this->savedelete='';
 //	 */phpMyEdit($opts)
 	{
 		// Set desirable error reporting level
-//		$error_reporting = error_reporting(E_ALL & ~E_NOTICE);
 		$error_reporting = error_reporting(E_ALL);
+//		$error_reporting = error_reporting(E_ALL & ~E_NOTICE);
 		// Database handle variables
 		$this->sql_delimiter();
 		if (isset($opts['dbh'])) {
