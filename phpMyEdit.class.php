@@ -32,7 +32,7 @@
 //
 // ***********************
 //
-//  updated 2 January 2022, Robert Holmgren, rjh@holmgren.org
+//  updated 3 January 2022, Robert Holmgren, rjh@holmgren.org
 //  updated for PHP version 8 (compatible with v7)
 //  edits/fixes (YMMV)
 //
@@ -487,7 +487,7 @@ class phpMyEdit
 						$qparts['select'] .= ',';
 					}
 				}
-				$qparts['select'][strlen($qparts['select']) - 1] = ')';
+				$qparts['select'][strlen($qparts['select']) - 1] = ')'; // {} ==> [] (invalid syntax)
 				$qparts['select'] .= ' AS '.$this->sd.'PMEalias'.$field_num.$this->ed;
 				$qparts['orderby'] = $this->sd.'PMEalias'.$field_num.$this->ed;
 			} else if ($desc && is_array($desc)) {
@@ -551,7 +551,7 @@ class phpMyEdit
 							$ret .= ',';
 						}
 					}
-					$ret[strlen($ret) - 1] = ')';
+					$ret[strlen($ret) - 1] = ')'; // {} ==> [] (invalid syntax)
 				} else if (is_array($desc)) {
 					// TODO
 				} else {
@@ -563,7 +563,7 @@ class phpMyEdit
 			} else {
 				$ret = $this->sd.'PMEtable0'.$this->ed.'.'.$this->sd.$this->fds[$field].$this->ed;
 			}
-			// TODO: not neccessary, remove me!
+			// TODO: not necessary, remove me!
 //			if (is_array($this->fdd[$this->fds[$field]]['values2'])) {
 //			}
 		}
@@ -1598,7 +1598,7 @@ if(!isset($value)){$value='';}
 		if (! is_array($selected)) {
 			$selected = $selected === null ? array() : array((string)$selected);
 		} else {
-			foreach($selected as $val) $selected2[]=(string)$val;
+			foreach($selected as $val) $selected2[]=(string)$val; // typo: $selecte2[] ==> $selected2[]
 			$selected = $selected2;
 		}
 		$found = false;
@@ -1770,7 +1770,7 @@ if(!isset($value)){$value='';}
 		if (isset($this) && isset($this->cgi['overwrite'][$name])) {
 			return $this->cgi['overwrite'][$name];
 		}
-//		static $magic_quotes_gpc = null;
+//		static $magic_quotes_gpc = null; //removed all references to magic_quotes_gpc
 //		if ($magic_quotes_gpc === null) {
 //			$magic_quotes_gpc = get_magic_quotes_gpc();
 //		}
@@ -2359,7 +2359,7 @@ if(!isset($ret)){$ret='';} //initialized $ret
 		/*
 		 * Display sorting sequence
 		 */
-		if (isset($qparts['orderby']) && $this->display['sort']) {
+		if (isset($qparts['orderby']) && isset($this->display['sort'])) {
 			$css_class_name = $this->getCSSclass('sortinfo');
 			echo '<tr class="',$css_class_name,'">',"\n";
 			echo '<td class="',$css_class_name,'" colspan="',$sys_cols,'">';
@@ -2483,7 +2483,7 @@ if(!isset($ret)){$ret='';} //initialized $ret
 						if ($this->change_enabled()) {
 							$printed_out && print('&nbsp;');
 							$printed_out = true;
-							echo '<a href="',$changeQuery,'" title="',$changeTitle,'" class="',$css_class_name,'">C</a>';
+							echo '<a id="',fhtmlspecialchars($key_rec),'" href="',$changeQuery,'" title="',$changeTitle,'" class="',$css_class_name,'">C</a>'; // Added id
 						}
 						if ($this->copy_enabled()) {
 							$printed_out && print('&nbsp;');
