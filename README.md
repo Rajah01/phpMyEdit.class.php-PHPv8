@@ -8,7 +8,7 @@ A (perhaps overly ambitious) goal of this release was to produce a Development v
 
 For Production use, change "E_ALL" to "E_ALL & ~E_NOTICE" (line 3270).
 
-YMMV: Your mileage may vary! Compare this code to an earlier version of phpMyEdit if you encounter errors.
+YMMV: Your mileage may vary! Compare this code to earlier versions of phpMyEdit if you encounter errors.
 
 --------------------------
 
@@ -16,23 +16,23 @@ PHP's "htmlspecialchars()" function is modified in this version to become "htmls
 
 --------------------------
 
-This version of phpMyEdit implements one optional tweak, which ensures that after Viewing or Changing any record, the calling program returns to and focuses upon that record instead of the first record.
+This version of phpMyEdit offers one optional tweak, which ensures that after Viewing or Changing any record, the calling program returns to and focuses upon that record instead of the first record.
 
-It sets a $_SESSION['lastrec'] variable that contains the record number being Viewed or Changed. If you do NOT implement this option in your calling programs, it is entirely benign, the only cost being a $_SESSION variable (alternatively, delete the two lines that reference $_SESSION['lastrec']).
+It sets a $_SESSION['lastrec'] variable that contains the record number being Viewed or Changed.
 
-If you do implement this option, it requires three statements in your client calling programs:
+The option is disabled by default. If you implement this option, uncomment the two lines in phpMyEdit (2221 and 2614) that reference $_SESSION['lastrec']. Additionally, it requires three PHP statements in your client calling programs:
 
-[In PHP, at TopFile:]
+[Near TopFile:]
 
 	<?php if(!isset($_SESSION['lastrec'])){$_SESSION['lastrec']='';} ?>
 
-[In HTML head section:]
+[In HTML head element:]
 
-	echo '<script> function jumpto(lastrec){ var el=document.getElementById(lastrec); el.scrollIntoView({block:"center"}); } </script>';
+	echo '<script> function jumpto(lastrec){document.getElementById(lastrec).scrollIntoView({block:"center"});} </script>';
 
-[HTML body statement:]
+[HTML body tag:]
 
-	echo '<body'; if($_SESSION['lastrec']!=""){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')"';} echo '>';
+	echo '<body'; if($_SESSION['lastrec']!=''){echo ' onload="jumpto(\''.$_SESSION['lastrec'].'\')"';} echo '>';
 
 --------------------------
 

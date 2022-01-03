@@ -1802,10 +1802,10 @@ if(!isset($value)){$value='';}
 		if (isset($_SERVER[$name])) {
 			return $_SERVER[$name];
 		}
-//		global $_SERVER;
-//		if (isset($_SERVER[$name])) {
-//			return $_SERVER[$name];
-//		}
+		global $HTTP_SERVER_VARS;
+		if (isset($HTTP_SERVER_VARS[$name])) {
+			return $HTTP_SERVER_VARS[$name];
+		}
 		global $$name;
 		if (isset($$name)) {
 			return $$name;
@@ -2218,7 +2218,7 @@ if(!isset($ret)){$ret='';} //initialized $ret
 		$qparts['where'] = $this->get_SQL_where_from_query_opts();
 		// build up the ORDER BY clause
 		if (isset($this->sfn)) {
-$_SESSION['lastrec']=''; //Unset record position
+//$_SESSION['lastrec']=''; //Unset record position
 			$sort_fields   = array();
 			$sort_fields_w = array();
 			foreach ($this->sfn as $field) {
@@ -2611,7 +2611,7 @@ $_SESSION['lastrec']=''; //Unset record position
 		if ($this->cgi['persist'] != '') {
 			echo $this->get_origvars_html($this->cgi['persist']);
 		}
-$_SESSION['lastrec']=$this->rec; // Set record number (=html anchor element "id")
+//$_SESSION['lastrec']=$this->rec; // Set record number (=html anchor element "id")
 		echo $this->get_origvars_html($this->get_sfn_cgi_vars());
 		echo $this->get_origvars_html($this->qfn);
 		echo $this->htmlHiddenSys('cur_tab', $this->dhtml['prefix'].'tab'.$this->cur_tab);
