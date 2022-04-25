@@ -1,6 +1,6 @@
-Update phpMyEdit.class.php (and phpMyEditSetup.php) for PHP version 8 (compatible with PHP v7)
+Update <i><b>phpMyEdit.class.php</b></i> (and phpMyEditSetup.php) for PHP version 8 (compatible with PHP v7)
 
-Beta4 adds <i><b>phpMyEditSetup.php</b></i> to this package.
+Beta4 adds <i><b>phpMyEditSetup.php</b></i>, fixed for PHP 8, to this package.
 
 Based upon Patrick Goupell's Update for PHP version 7 (October 2018) (http://www.yooperlinux.com/sites/default/files/downloads/phpMyEdit-5.8.0.zip) with additional edits and fixes derived from https://kimballrexford.com/phpmyedit-for-php7-and-mysqli/, as well as contributions (described in phpMyEdit.class.php at TOF) by Frédéric Aeberhard
 
