@@ -16,7 +16,7 @@ should be similar to:
 
 	| character_set_server		| utf8mb4
 
-	| character_set_system		| utf8 or utf8mb{#} (<b>cannot be changed!</b>)
+	| character_set_system		| utf8 or utf8mb{#} (canNOT be changed!)
 
 	| collation_connection		| utf8mb4_general_ci (or utf8mb4_unicode_ci)
 
@@ -28,7 +28,7 @@ should be similar to:
 
 If still "latin1" (or "utf8mb3", or whatever), reexamine your config.
 
-I largely follow extensive guidance at https://www.toptal.com/php/a-utf-8-primer-for-php-and-mysql <i>and</i> https://mathiasbynens.be/notes/mysql-utf8mb4 (extremely complicated), but appropriate settings in "my.ini" (or "my.cnf") may be sufficient to obtain the desired result (reissue SHOW VARIABLES ... as above, after restarting mysqld|mysqld_safe).
+I largely follow extensive guidance at <a target="_blank" href="https://www.toptal.com/php/a-utf-8-primer-for-php-and-mysql">https://www.toptal.com/php/a-utf-8-primer-for-php-and-mysql</a> <i>and</i> <a target="_blank" href="https://mathiasbynens.be/notes/mysql-utf8mb4">https://mathiasbynens.be/notes/mysql-utf8mb4</a>, but a few appropriate settings in "my.ini" (or "my.cnf") may be sufficient to obtain the desired result (reissue SHOW VARIABLES ... as above, after restarting mysqld|mysqld_safe).
 
 In "my.ini|my.cnf":
 
