@@ -10,7 +10,7 @@ A (perhaps overly ambitious) goal of this and prior releases is to produce a Dev
 
 For Production use, change "E_ALL" to "E_ALL & ~E_NOTICE" (line 3676).
 
-YMMV: Your mileage may vary! Compare this code to earlier versions of phpMyEdit if you encounter errors.
+YMMV: Your mileage may vary! Compare this code to earlier versions of phpMyEdit if you encounter fatal errors.
 
 *************************
 
